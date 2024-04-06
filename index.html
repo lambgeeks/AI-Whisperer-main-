@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tool Landing Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>AI Tool</h1>
+            <p>our AI-powered solution</p>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <div id="startButton">
+                <!-- Use Unicode character for the microphone icon -->
+                <span>&#128266;</span>
+            </div>
+            <div>
+                <textarea id="speechInput" rows="4" cols="50" placeholder="Speak here..."></textarea>
+            </div>
+            <div>
+                <button id="processButton">Process Speech</button>
+            </div>
+            <div>
+                <h2>Results:</h2>
+                <div id="resultBox"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        const startButton = document.getElementById('startButton');
+        const speechInput = document.getElementById('speechInput');
+        const processButton = document.getElementById('processButton');
+        const resultBox = document.getElementById('resultBox');
+
+        // Initialize SpeechRecognition object
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = 'en-US';
+
+        // Event listener for start button
+        startButton.addEventListener('click', () => {
+            recognition.start();
+        });
+
+        // Event listener for speech recognition result
+        recognition.onresult = (event) => {
+            const speechResult = event.results[0][0].transcript;
+            speechInput.value = speechResult;
+        };
+
+        // Event listener for process button
+        processButton.addEventListener('click', () => {
+            const inputText = speechInput.value;
+            processSpeech(inputText);
+        });
+
+        // Function to process speech using backend server
+        function processSpeech(audioText) {
+            fetch('/process-speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ audio_text: audioText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const reply = data.reply;
+                resultBox.textContent = reply;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
